@@ -2,8 +2,8 @@ const { MessageEmbed } = require('discord.js');
 const file = new (require('../util/file'))('guilds.json');
 
 module.exports = {
-  command: 'setchannel',
-  aliases: ['sc'],
+  command: 'set_duration',
+  aliases: ['sd'],
   dm: false,
   permissions: (member) => {
     return member.hasPermission('MANAGE_GUILD');
@@ -33,28 +33,20 @@ module.exports = {
       });
     }
 
-    if (
-      args[0] != 'flow' &&
-      args[0] != 'unusual' &&
-      args[0] != 'golden' &&
-      args[0] != 'darkprint' &&
-      args[0] != 'equity' &&
-      args[0] != 'greenequity' &&
-      args[0] != 'alphaai'
-    )
-      return;
-    if (!msg.mentions.channels.first()) return;
+    if (!['m', 'w', 'd', 'i15', 'i5', 'i3'].includes(args[0])) {
+      return msg.channel.send(
+        'Only m/w/d/i15/i5/i3 is accepted as the duration.'
+      );
+    }
 
     const guild = guilds.find((g) => g.id == msg.guild.id);
 
-    guild[args[0]] = msg.mentions.channels.first().id;
+    guild.chart_duration = args[0];
 
     file.write(guilds);
 
     await msg.channel.send(
-      `Successfully configured the bot to send ${
-        args[0]
-      } in ${msg.mentions.channels.first()}.`
+      `Duration for chart in this server set to ${args[0]}.`
     );
   }
 };

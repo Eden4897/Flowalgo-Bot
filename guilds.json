@@ -1,2 +1,21 @@
 [
+    {
+        "id": "881781038106419240",
+        "flow": null,
+        "unusual": null,
+        "golden": null,
+        "darkprint": null,
+        "equity": null,
+        "greenequity": null,
+        "alphaai": "889081858204237824",
+        "flow_ping": "",
+        "unusual_ping": "",
+        "golden_ping": "",
+        "darkprint_ping": "",
+        "equity_ping": "",
+        "greenequity_ping": "",
+        "alphaai_ping": "",
+        "chart": true,
+        "chart_duration": "m"
+    }
 ]

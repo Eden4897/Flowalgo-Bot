@@ -1,8 +1,8 @@
 const puppeteer = require('puppeteer');
 const { FLOWALGO_USERNAME, FLOWALGO_PASSWORD } = require('./util/globals');
-const bot = require('./index');
-const { MessageEmbed } = require('discord.js');
-const file = new (require('./util/file'))('guilds.json');
+const { newFlowResponse } = require('./flowalgo/new-flow-response');
+const { newDarkflowResponse } = require('./flowalgo/new-darkflow-response');
+const { newAlphaaiResponse } = require('./flowalgo/new-alphaai-response');
 
 let browser;
 let pages;
@@ -135,182 +135,16 @@ let isSetUp = false;
   await zoomPage.click('h6');
 
   /**
-   * Flow detection
+   * Responses
    */
 
-  await page.exposeFunction('newFlow', (flow) => {
-    function getProgressBar(num) {
-      const fill = '█';
-      const unfill = ' ';
-      let out = '';
-
-      for (let i = 5; i <= 100; i += 5) {
-        if (i < num) out += fill;
-        else out += unfill;
-      }
-
-      return `\`${out}\``;
-    }
-
-    const guilds = file.read();
-
-    const embed = new MessageEmbed()
-      .setColor(
-        flow.isUnusual
-          ? '#950FF5'
-          : flow.isGolden
-          ? '#F5CB0F'
-          : flow.isCall
-          ? '#33CC6B'
-          : '#CC4A33'
-      )
-      .setTitle(
-        `${flow.ticker} ${flow.isCall ? 'CALLS' : 'PUTS'} ${
-          flow.isUnusual ? '(UNUSUAL)' : flow.isGolden ? '(GOLDEN SIGNAL)' : ''
-        }`
-      )
-      .setDescription(
-        `Score: **[${getProgressBar(flow.algoScore)}]** *(${
-          flow.algoScore
-        }/100)*`
-      )
-      .addFields(
-        { name: 'Ticker', value: flow.ticker, inline: true },
-        { name: 'Type', value: flow.type, inline: true },
-        { name: 'C/P', value: flow.isCall ? 'CALLS' : 'PUTS', inline: true },
-        { name: 'Strike', value: flow.strike, inline: true },
-        { name: 'Spot price', value: flow.spot, inline: true },
-        { name: 'Premium', value: flow.premium, inline: true },
-        { name: 'Details', value: flow.details, inline: true },
-        { name: 'Date', value: flow.date, inline: true },
-        { name: 'Expiry Date', value: flow.expiry, inline: true }
-      );
-
-    guilds.forEach((guild) => {
-      const channel = bot.channels.cache.get(
-        flow.isUnusual
-          ? guild.unusual
-          : flow.isGolden
-          ? guild.golden
-          : guild.flow
-      );
-      if (!channel) return;
-      channel
-        .send(
-          flow.isUnusual
-            ? guild.unusual_ping
-            : flow.isGolden
-            ? guild.golden_ping
-            : guild.flow_ping,
-          (
-            flow.isUnusual
-              ? guild.unusual_chart
-              : flow.isGolden
-              ? guild.golden_chart
-              : guild.flow_chart
-          )
-            ? embed.setImage(
-                getChart(
-                  (flow.ticker,
-                  flow.isUnusual
-                    ? guild.unusual_chart_duration
-                    : flow.isGolden
-                    ? guild.golden_chart_duration
-                    : guild.flow_chart_duration) ?? 'i5'
-                )
-              )
-            : embed
-        )
-        .catch(() => {});
-    });
-  });
+  await page.exposeFunction('newFlow', newFlowResponse);
+  await page.exposeFunction('newDarkflow', newDarkflowResponse);
+  await page.exposeFunction('newAlphaSig', newAlphaaiResponse);
 
   /**
-   * Darkflow detection
+   * Listeners
    */
-
-  await page.exposeFunction('newDarkflow', (darkflow) => {
-    const guilds = file.read();
-
-    const embed = new MessageEmbed()
-      .setColor(
-        darkflow.greenEquity
-          ? '#4be352'
-          : darkflow.darkprint
-          ? '#000000'
-          : '#9ea2a8'
-      )
-      .setTitle(
-        `${darkflow.ticker} ${
-          darkflow.greenEquity
-            ? 'Green Equity'
-            : darkflow.darkprint
-            ? 'Darkpool Prints'
-            : 'Equity Blocks'
-        }`
-      )
-      .addFields(
-        { name: 'Ticker', value: darkflow.ticker, inline: true },
-        { name: 'Quantity', value: darkflow.quantity, inline: true },
-        { name: '$MM', value: darkflow.mm, inline: true },
-        { name: 'Spot Price', value: darkflow.spot, inline: true },
-        { name: 'Date', value: darkflow.time, inline: true }
-      );
-
-    guilds.forEach((guild) => {
-      const channel = bot.channels.cache.get(
-        darkflow.greenEquity
-          ? guild.greenequity
-          : darkflow.darkprint
-          ? guild.darkprint
-          : guild.equity
-      );
-      if (!channel) return;
-      channel
-        .send(
-          darkflow.greenEquity
-            ? guild.greenequity_ping
-            : darkflow.darkprint
-            ? guild.darkprint_ping
-            : guild.equity_ping,
-          embed
-        )
-        .catch(() => {});
-    });
-  });
-
-  /**
-   * Alpha AI detection
-   */
-
-  await page.exposeFunction('newAlphaSig', (alphaSig) => {
-    const guilds = file.read();
-
-    const embed = new MessageEmbed()
-      .setColor('#2A466E')
-      .setTitle(`AI Alert ${alphaSig.symbol}`)
-      .addFields(
-        { name: 'Symbol', value: alphaSig.symbol, inline: true },
-        { name: 'Signal', value: alphaSig.sentiment, inline: true },
-        { name: 'Ref', value: alphaSig.ref, inline: true },
-        { name: 'Date', value: alphaSig.date, inline: true }
-      );
-
-    guilds.forEach((guild) => {
-      const channel = bot.channels.cache.get(guild.alphaai);
-      if (!channel) return;
-      channel
-        .send(
-          guild.alphaai_ping,
-          guild.alphaai_chart
-            ? embed.setImage(
-                getChart(alphaSig.symbol, guild.alphaai_chart_duration ?? 'i5')
-              )
-            : embed
-        )
-        .catch(() => {});
-    });
-  });
 
   await page.evaluate(() => {
     /**
@@ -410,7 +244,7 @@ let isSetUp = false;
   });
 })();
 
-function getChart(ticker, period) {
+module.exports.getChart = function getChart(ticker, period) {
   return `https://charts.finviz.com/chart.ashx?t=${ticker}&p=${period}`;
 }
 
@@ -424,40 +258,4 @@ module.exports.isReady = () => {
 
 module.exports.getBrowser = () => {
   return browser;
-};
-
-module.exports.test = () => {
-  (async (alphaSig) => {
-    const guilds = file.read();
-
-    const embed = new MessageEmbed()
-      .setColor('#2A466E')
-      .setTitle(`AI Alert ${alphaSig.symbol}`)
-      .addFields(
-        { name: 'Symbol', value: alphaSig.symbol, inline: true },
-        { name: 'Signal', value: alphaSig.sentiment, inline: true },
-        { name: 'Ref', value: alphaSig.ref, inline: true },
-        { name: 'Date', value: alphaSig.date, inline: true }
-      );
-
-    guilds.forEach((guild) => {
-      const channel = bot.channels.cache.get(guild.alphaai);
-      if (!channel) return;
-      channel
-        .send(
-          guild.alphaai_ping,
-          guild.alphaai_chart
-            ? embed.setImage(
-                getChart(alphaSig.symbol, guild.alphaai_chart_duration ?? 'i5')
-              )
-            : embed
-        )
-        .catch(() => {});
-    });
-  })({
-    symbol: 'TSLA',
-    sentiment: 'LONG',
-    ref: '727.43',
-    date: '08/30'
-  });
 };

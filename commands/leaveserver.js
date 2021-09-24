@@ -5,7 +5,6 @@ module.exports = {
     return member.id === '780481685975990313';
   },
   async execute(bot, msg, args) {
-    if (msg.author.id !== '780481685975990313') return;
     let servers = bot.guilds.cache.array();
     let strings = [
       '      Name'.padEnd(30, ' ') + '      Owner'.padEnd(20, ' ') + '\n'

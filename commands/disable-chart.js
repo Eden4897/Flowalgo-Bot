@@ -28,17 +28,34 @@ module.exports = {
         equity_ping: '',
         greenequity_ping: '',
         alphaai_ping: '',
-        chart: false,
-        chart_duration: 'i5'
+        flow_chart: false,
+        unusual_chart: false,
+        golden_chart: false,
+        alphaai_chart: false,
+        flow_chart_duration: 'i5',
+        unusual_chart_duration: 'i5',
+        golden_chart_duration: 'i5',
+        alphaai_chart_duration: 'i5'
       });
+    }
+
+    if (!['flow', 'unusual', 'golden', 'alphaai'].includes(args[0])) {
+      return msg.channel.send(
+        `Only alerts with charts are ${[
+          'flow',
+          'unusual',
+          'golden',
+          'alphaai'
+        ].join('/')}`
+      );
     }
 
     const guild = guilds.find((g) => g.id == msg.guild.id);
 
-    guild.chart = false;
+    guild[`${args[0]}_chart`] = false;
 
     file.write(guilds);
 
-    await msg.channel.send(`Chart disabled for this server.`);
+    await msg.channel.send(`Chart disabled for ${args[0]} alerts.`);
   }
 };

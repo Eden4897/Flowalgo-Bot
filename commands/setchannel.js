@@ -28,21 +28,39 @@ module.exports = {
         equity_ping: '',
         greenequity_ping: '',
         alphaai_ping: '',
-        chart: false,
-        chart_duration: 'i5'
+        flow_chart: false,
+        unusual_chart: false,
+        golden_chart: false,
+        alphaai_chart: false,
+        flow_chart_duration: 'i5',
+        unusual_chart_duration: 'i5',
+        golden_chart_duration: 'i5',
+        alphaai_chart_duration: 'i5'
       });
     }
 
     if (
-      args[0] != 'flow' &&
-      args[0] != 'unusual' &&
-      args[0] != 'golden' &&
-      args[0] != 'darkprint' &&
-      args[0] != 'equity' &&
-      args[0] != 'greenequity' &&
-      args[0] != 'alphaai'
+      ![
+        'flow',
+        'unusual',
+        'golden',
+        'darkprink',
+        'equity',
+        'greenequity',
+        'alphaai'
+      ].includes(args[0])
     )
-      return;
+      return msg.channel.send(
+        `Alerts available are ${[
+          'flow',
+          'unusual',
+          'golden',
+          'darkprink',
+          'equity',
+          'greenequity',
+          'alphaai'
+        ].join(' ,')}`
+      );
     if (!msg.mentions.channels.first()) return;
 
     const guild = guilds.find((g) => g.id == msg.guild.id);

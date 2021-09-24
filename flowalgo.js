@@ -202,9 +202,22 @@ let isSetUp = false;
             : flow.isGolden
             ? guild.golden_ping
             : guild.flow_ping,
-          guild.chart
+          (
+            flow.isUnusual
+              ? guild.unusual_chart
+              : flow.isGolden
+              ? guild.golden_chart
+              : guild.flow_chart
+          )
             ? embed.setImage(
-                getChart(flow.ticker, guild.chart_duration ?? 'i5')
+                getChart(
+                  (flow.ticker,
+                  flow.isUnusual
+                    ? guild.unusual_chart_duration
+                    : flow.isGolden
+                    ? guild.golden_chart_duration
+                    : guild.flow_chart_duration) ?? 'i5'
+                )
               )
             : embed
         )
@@ -289,9 +302,9 @@ let isSetUp = false;
       channel
         .send(
           guild.alphaai_ping,
-          guild.chart
+          guild.alphaai_chart
             ? embed.setImage(
-                getChart(alphaSig.symbol, guild.chart_duration ?? 'i5')
+                getChart(alphaSig.symbol, guild.alphaai_chart_duration ?? 'i5')
               )
             : embed
         )
@@ -413,37 +426,38 @@ module.exports.getBrowser = () => {
   return browser;
 };
 
-(async (alphaSig) => {
-  await new Promise((_) => setTimeout(_, 5000));
-  const guilds = file.read();
+module.exports.test = () => {
+  (async (alphaSig) => {
+    const guilds = file.read();
 
-  const embed = new MessageEmbed()
-    .setColor('#2A466E')
-    .setTitle(`AI Alert ${alphaSig.symbol}`)
-    .addFields(
-      { name: 'Symbol', value: alphaSig.symbol, inline: true },
-      { name: 'Signal', value: alphaSig.sentiment, inline: true },
-      { name: 'Ref', value: alphaSig.ref, inline: true },
-      { name: 'Date', value: alphaSig.date, inline: true }
-    );
+    const embed = new MessageEmbed()
+      .setColor('#2A466E')
+      .setTitle(`AI Alert ${alphaSig.symbol}`)
+      .addFields(
+        { name: 'Symbol', value: alphaSig.symbol, inline: true },
+        { name: 'Signal', value: alphaSig.sentiment, inline: true },
+        { name: 'Ref', value: alphaSig.ref, inline: true },
+        { name: 'Date', value: alphaSig.date, inline: true }
+      );
 
-  guilds.forEach((guild) => {
-    const channel = bot.channels.cache.get(guild.alphaai);
-    if (!channel) return;
-    channel
-      .send(
-        guild.alphaai_ping,
-        guild.chart
-          ? embed.setImage(
-              getChart(alphaSig.symbol, guild.chart_duration ?? 'i5')
-            )
-          : embed
-      )
-      .catch(() => {});
+    guilds.forEach((guild) => {
+      const channel = bot.channels.cache.get(guild.alphaai);
+      if (!channel) return;
+      channel
+        .send(
+          guild.alphaai_ping,
+          guild.alphaai_chart
+            ? embed.setImage(
+                getChart(alphaSig.symbol, guild.alphaai_chart_duration ?? 'i5')
+              )
+            : embed
+        )
+        .catch(() => {});
+    });
+  })({
+    symbol: 'TSLA',
+    sentiment: 'LONG',
+    ref: '727.43',
+    date: '08/30'
   });
-})({
-  symbol: 'TSLA',
-  sentiment: 'LONG',
-  ref: '727.43',
-  date: '08/30'
-});
+};

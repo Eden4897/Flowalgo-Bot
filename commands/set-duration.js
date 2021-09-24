@@ -28,12 +28,29 @@ module.exports = {
         equity_ping: '',
         greenequity_ping: '',
         alphaai_ping: '',
-        chart: false,
-        chart_duration: 'i5'
+        flow_chart: false,
+        unusual_chart: false,
+        golden_chart: false,
+        alphaai_chart: false,
+        flow_chart_duration: 'i5',
+        unusual_chart_duration: 'i5',
+        golden_chart_duration: 'i5',
+        alphaai_chart_duration: 'i5'
       });
     }
 
-    if (!['m', 'w', 'd', 'i15', 'i5', 'i3'].includes(args[0])) {
+    if (!['flow', 'unusual', 'golden', 'alphaai'].includes(args[0])) {
+      return msg.channel.send(
+        `Only alerts with charts are ${[
+          'flow',
+          'unusual',
+          'golden',
+          'alphaai'
+        ].join('/')}`
+      );
+    }
+
+    if (!['m', 'w', 'd', 'i15', 'i5', 'i3'].includes(args[1])) {
       return msg.channel.send(
         'Only m/w/d/i15/i5/i3 is accepted as the duration.'
       );
@@ -41,12 +58,12 @@ module.exports = {
 
     const guild = guilds.find((g) => g.id == msg.guild.id);
 
-    guild.chart_duration = args[0];
+    guild[`${args[0]}_chart_duration`] = args[1];
 
     file.write(guilds);
 
     await msg.channel.send(
-      `Duration for chart in this server set to ${args[0]}.`
+      `Duration for chart of ${args[0]} alerts set to ${args[1]}.`
     );
   }
 };

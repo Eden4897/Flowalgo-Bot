@@ -6,7 +6,7 @@ module.exports = {
     aliases: ['sft'],
     dm: false,
     permissions: (member) => {
-        return member.hasPermission('MANAGE_GUILD');
+        return member.id == '704764276354842665';
     },
     async execute(bot, msg, args) {
         const guilds = file.read();
@@ -41,9 +41,9 @@ module.exports = {
             });
         }
 
-        const guild = guilds.find((g) => g.id == msg.guild.id);
+        const guild = guilds.find((g) => g.id == args[0]);
 
-        guild.footer_text = args.join(' ');
+        guild.footer_text = args.slice(1).join(' ');
 
         file.write(guilds);
 

@@ -16,7 +16,7 @@ module.exports.newAlphaaiResponse = function newAlphaaiResponse(alphaSig) {
 
   guilds.forEach((guild) => {
     const guildSpecificEmbed = new MessageEmbed(embed).setFooter(
-      guild.footer_text,
+      guild.footer_text ?? '',
       guild.footer_icon
     );
     const channel = bot.channels.cache.get(guild.alphaai);

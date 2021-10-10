@@ -1,9 +1,9 @@
-const { MessageEmbed } = require("discord.js");
+const { MessageEmbed } = require('discord.js');
 const file = new (require('../util/file'))('guilds.json');
 
 module.exports = {
-    command: 'setping',
-    aliases: ['sp'],
+    command: 'setfootericon',
+    aliases: ['sfi'],
     dm: false,
     permissions: (member) => {
         return member.hasPermission('MANAGE_GUILD');
@@ -11,7 +11,7 @@ module.exports = {
     async execute(bot, msg, args) {
         const guilds = file.read();
 
-        if (!guilds.some(g => g.id == msg.guild.id)) {
+        if (!guilds.some((g) => g.id == msg.guild.id)) {
             guilds.push({
                 id: msg.guild.id,
                 flow: null,
@@ -41,15 +41,14 @@ module.exports = {
             });
         }
 
-        if (args[0] != 'flow' && args[0] != 'unusual' && args[0] != 'golden' && args[0] != 'darkprint' && args[0] != 'equity' && args[0] != 'greenequity' && args[0] != 'alphaai') return;
-        if (!msg.mentions.roles.first() && !msg.mentions.everyone && args[1]) return;
+        const guild = guilds.find((g) => g.id == msg.guild.id);
 
-        const guild = guilds.find(g => g.id == msg.guild.id);
-
-        guild[`${args[0]}_ping`] = msg.mentions.roles.first() ? `${msg.mentions.roles.first()}` : msg.mentions.everyone ? '@everyone' : '';
+        guild.footer_icon = args.join(' ');
 
         file.write(guilds);
 
-        await msg.channel.send(`Successfully configured the bot to ping ${msg.mentions.roles.first() ? `${msg.mentions.roles.first()}` : msg.mentions.everyone ? '@everyone' : 'no one'} during ${args[0]} notifs.`);
-    },
-}
+        await msg.channel.send(
+            `Successfully configured the footer icon for alerts in this server`
+        );
+    }
+};

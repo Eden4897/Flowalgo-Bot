@@ -15,8 +15,8 @@ let isSetUp = false;
 
   browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless: false,
-    defaultViewport: null
+    // headless: false,
+    // defaultViewport: null
   });
 
   const asyncSetupProcedures = [];

@@ -35,7 +35,9 @@ module.exports = {
         flow_chart_duration: 'i5',
         unusual_chart_duration: 'i5',
         golden_chart_duration: 'i5',
-        alphaai_chart_duration: 'i5'
+        alphaai_chart_duration: 'i5',
+        footer_icon: '© R2R Analytics, 2021 ✦ For educational purposes only',
+        footer_icon: 'https://media.discordapp.net/attachments/891831484770570250/892101960017260564/Hand_only1_2.png',
       });
     }
 
@@ -70,8 +72,7 @@ module.exports = {
     file.write(guilds);
 
     await msg.channel.send(
-      `Successfully configured the bot to send ${
-        args[0]
+      `Successfully configured the bot to send ${args[0]
       } in ${msg.mentions.channels.first()}.`
     );
   }

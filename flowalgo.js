@@ -3,11 +3,6 @@ const { FLOWALGO_USERNAME, FLOWALGO_PASSWORD } = require('./util/globals');
 const { newFlowResponse } = require('./flowalgo/new-flow-response');
 const { newDarkflowResponse } = require('./flowalgo/new-darkflow-response');
 const { newAlphaaiResponse } = require('./flowalgo/new-alphaai-response');
-const flowMutationObserver = require('./flowalgo/flow-mutation-observer.js');
-const darkflowMutationObserver = require('./flowalgo/darkflow-mutation-observer.js');
-const alphaaiMutationObserver = require('./flowalgo/alphaai-mutation-observer.js');
-
-console.log(flowMutationObserver);
 
 let browser;
 let pages;
@@ -185,17 +180,37 @@ let isSetUp = false;
    * Listeners
    */
 
-  console.log('hi');
   await page.evaluate(
-    (
-      flowMutationObserver,
-      darkflowMutationObserver,
-      alphaaiMutationObserver
-    ) => {
+    async () => {
       /**
        * Flow Listener
        */
-      const flowObserver = new MutationObserver(flowMutationObserver);
+      const flowObserver = new MutationObserver(() => {
+        const flow = document.querySelector(
+          '.optionflow-component>*>.data-body > div'
+        );
+
+        let details = flow.querySelector('.details>span').innerText;
+        details =
+          details.split('@')[0].trim() + ' @ $' + details.split('@')[1].trim();
+
+        const data = {
+          algoScore: parseFloat(flow.getAttribute('data-score')).toFixed(2),
+          ticker: flow.querySelector('.ticker').innerText,
+          type: flow.getAttribute('data-ordertype'),
+          isCall: flow.classList.contains('bullflow'),
+          strike: flow.querySelector('.strike > span').innerText,
+          spot: flow.querySelector('.ref > span').innerText,
+          premium: flow.querySelector('.premium').innerText,
+          details: details,
+          date: new Date().toLocaleDateString(),
+          expiry: flow.querySelector('.expiry > span').innerText.trim(),
+          isUnusual: flow.getAttribute('data-unusual') == 'true',
+          isGolden: flow.getAttribute('data-agsweep') == 'true'
+        };
+
+        newFlow(data);
+      });
 
       flowObserver.observe(
         document.querySelector('.optionflow-component>*>.data-body'),
@@ -205,7 +220,35 @@ let isSetUp = false;
       /**
        * Darkflow Listener
        */
-      const darkflowObserver = new MutationObserver(darkflowMutationObserver);
+
+      let lastDarkflow = null;
+
+      const darkflowObserver = new MutationObserver(() => {
+        const darkflow = document.querySelector(
+          '.darkflow-component>*>.data-body > div'
+        );
+
+        const data = {
+          ticker: darkflow.querySelector('.ticker').innerText,
+          time: darkflow.querySelector('.time').innerText,
+          quantity: darkflow.querySelector('.quantity>span').innerText,
+          spot: darkflow.querySelector('.ref>span').innerText,
+          mm: darkflow.querySelector('.notional').innerText,
+          darkprint: darkflow.classList.contains('darkprint'),
+          isBuy: 'rgba(2, 185, 71, 0.72)' == window.getComputedStyle(darkflow)['background-color'],
+          isSell: !['rgba(0, 0, 0, 0.35)', 'rgba(2, 185, 71, 0.72)'].includes(window.getComputedStyle(darkflow)['background-color']),
+          greenEquity:
+            parseInt(
+              darkflow.querySelector('.notional').innerText.replace(/[^0-9]/g, '')
+            ) >= 50
+        };
+
+        if (JSON.stringify(data) == JSON.stringify(lastDarkflow)) return;
+
+        lastDarkFlow = data;
+
+        newDarkflow(data);
+      });
       darkflowObserver.observe(
         document.querySelector('.darkflow-component>*>.data-body'),
         { childList: true, subtree: true }
@@ -215,16 +258,30 @@ let isSetUp = false;
        * AlphaSig listener
        */
 
-      const alphaSigObserver = new MutationObserver(alphaaiMutationObserver);
+      let lastAlphaSig = null;
+
+      const alphaSigObserver = new MutationObserver(() => {
+        const alphaSig = document.querySelector('.aai_signal');
+
+        const data = {
+          symbol: alphaSig.querySelector('.symbol').innerText.trim(),
+          ref: alphaSig.querySelector('div:not([class])').innerText.trim(),
+          date: alphaSig.querySelector('.date').innerText.trim(),
+          sentiment: alphaSig.querySelector('.sentiment').innerText.trim()
+        };
+
+        if (JSON.stringify(data) == JSON.stringify(lastAlphaSig)) return;
+
+        lastAlphaSig = data;
+
+        newAlphaSig(data);
+      });
 
       alphaSigObserver.observe(document.querySelector('#fa_aai'), {
         childList: true,
         subtree: true
       });
-    },
-    flowMutationObserver,
-    darkflowMutationObserver,
-    alphaaiMutationObserver
+    }
   );
 
   await Promise.all(asyncSetupProcedures);
